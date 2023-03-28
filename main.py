@@ -121,6 +121,9 @@ class PDF:
 
     def move_pdf_to_scan_folder(self):
         os.rename(os.path.join(self.output_folder, "Email_Posteingang_OCR.pdf"), self.scan_eingang_pfad)
+        for file_name in os.listdir(self.output_folder):
+            file_path = os.path.join(self.output_folder, file_name)
+            os.remove(file_path)
 
 
 if __name__ == '__main__':
@@ -128,5 +131,5 @@ if __name__ == '__main__':
     pdf.convert_eml_to_pdf() # Konvertiert alle EML-Dateien im Input-Ordner in PDF-Dateien
     pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
     pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
-    pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner
+    pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner und löscht alle anderen Dateien im Output-Ordner
     print("Alles erledigt.")
