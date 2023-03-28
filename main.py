@@ -124,9 +124,9 @@ class PDF:
 
 
 if __name__ == '__main__':
-    pdf = PDF()
-    pdf.convert_eml_to_pdf()
-    pdf.merge_pdf()
+    pdf = PDF() # Erstellt eine Instanz der Klasse PDF
+    pdf.convert_eml_to_pdf() # Konvertiert alle EML-Dateien im Input-Ordner in PDF-Dateien
+    pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
     pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
-    pdf.move_pdf_to_scan_folder()
+    pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner
     print("Alles erledigt.")
