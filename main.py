@@ -1,21 +1,11 @@
-# folder_path = "/home/max/Downloads/Anhang"
-# , lang='deu'
-
-# TODO: OCR noch fehlerhaft
-# TODO: Images sollten ab einer bestimmten Dateigröße verkleinert werden
-
-
 import os
-import PyPDF2
 from wand.image import Image
 from wand.exceptions import WandException
-import pytesseract
-from PyPDF2 import PdfMerger, PdfWriter
+from PyPDF2 import PdfMerger
 import email
-from email import policy
-from email.parser import BytesParser
 from weasyprint import HTML
-
+from PIL import Image as PILImage
+import ocrmypdf
 
 class PDF:
     def __init__(self):
@@ -27,6 +17,7 @@ class PDF:
 
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
+
 
     def convert_eml_to_pdf(self):
         for file_name in os.listdir(self.input_folder):
@@ -44,12 +35,19 @@ class PDF:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     msg = email.message_from_file(f)
 
+                # Extrahiere den Absender der E-Mail
+                sender = msg['From']
+                sender_email = msg['From'].split('<')[1][:-1]
+
                 # Extrahiere den HTML-Inhalt der E-Mail
                 html = ""
                 for part in msg.walk():
                     if part.get_content_type() == "text/html":
                         charset = part.get_content_charset() or 'utf-8'
                         html += part.get_payload(decode=True).decode(charset)
+
+                # Füge den Absender und dessen Email-Adresse am Anfang des HTML-Inhalts hinzu
+                html = f"<p>Absender: {sender}<br>Email: {sender_email}</p>" + html
 
                 # Erstelle eine neue PDF-Datei
                 pdf_filename = os.path.splitext(file_name)[0] + ".pdf"
@@ -61,42 +59,9 @@ class PDF:
                 print(
                     f"Die E-Mail wurde erfolgreich in {pdf_filename} konvertiert und gespeichert im Pfad {file_path}.")
 
-            # entfernen des else-Blocks
+    def create_ocr_pdf(self, input_pdf, output_pdf):
+        ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, force_ocr=True, language='deu')
 
-    def create_ocr_pdf(self, pdf_file_path):
-        # Öffne die PDF-Datei
-        pdf_file = open(pdf_file_path, 'rb')
-        pdf_reader = PyPDF2.PdfReader(pdf_file)
-
-        # Extrahiere den Text aus der PDF-Datei
-        text = ''
-        for page_num in range(len(pdf_reader.pages)):
-            try:
-                page = pdf_reader.pages[page_num]
-                text += pytesseract.image_to_string(page)
-            except TypeError:
-                print(f"Die Seite {page_num} konnte nicht gelesen werden.")
-
-        # Erstelle eine neue PDF-Datei mit dem extrahierten Text
-        pdf_writer = PyPDF2.PdfWriter()
-        pdf_writer.add_page(PyPDF2.PageObject.create_blank_page(None, 72, 72))
-        pdf_writer.add_metadata({
-            '/Title': 'OCR Output',
-            '/Creator': 'pytesseract',
-        })
-        pdf_writer.add_outline_item('OCR Output', 0)
-        # pdf_writer.addPageLabel(0, PyPDF2.pdf.PageLabel(number=1))
-        pdf_writer.add_page(PyPDF2.PageObject.createTextObject(text))
-
-        # Speichere die neue PDF-Datei unter dem Namen "output-ocr.pdf"
-        output_file_path = 'output-ocr.pdf'
-        with open(output_file_path, 'wb') as output_file:
-            pdf_writer.write(output_file)
-
-        # Schließe die PDF-Datei
-        pdf_file.close()
-
-        return output_file_path
 
     def merge_pdf(self):
         image_pdfs = []
@@ -104,27 +69,41 @@ class PDF:
         for file_name in os.listdir(self.input_folder):
             file_path = os.path.join(self.input_folder, file_name)
 
-
-
             if file_name.endswith(".pdf"):
                 self.merger.append(open(file_path, 'rb'))
 
             elif file_name.endswith(".jpg") or file_name.endswith(".jpeg") or file_name.endswith(".png"):
-                try:
-                    with Image(filename=file_path) as img:
-                        img.alpha_channel = False
-                        img.format = 'pdf'
-                        pdf_path = os.path.join(self.output_folder, f"{file_name[:-4]}.pdf")
-                        img.save(filename=pdf_path)
+                if os.path.splitext(file_path)[1].lower() in ('.jpg', '.jpeg', '.png'):
+                    # Check file size
+                    if os.path.getsize(file_path) > 1000000:  # 1 MB
+                        with PILImage.open(file_path) as img:
+                            # Resize image
+                            basewidth = 800
+                            wpercent = (basewidth / float(img.size[0]))
+                            hsize = int((float(img.size[1]) * float(wpercent)))
+                            img = img.resize((basewidth, hsize), PILImage.LANCZOS)
+                            # Save as PDF
+                            pdf_path = os.path.join(self.output_folder, f"{file_name[:-4]}.pdf")
+                            img.save(pdf_path, "PDF", resolution=100.0)
+                            image_pdfs.append(open(pdf_path, 'rb'))
+                    else:
+                        # File size is less than or equal to 1 MB, so add the original image to PDF
+                        try:
+                            with Image(filename=file_path) as img:
+                                img.alpha_channel = False
+                                img.format = 'pdf'
+                                pdf_path = os.path.join(self.output_folder, f"{file_name[:-4]}.pdf")
+                                img.save(filename=pdf_path)
 
-                        image_pdfs.append(open(pdf_path, 'rb'))
+                                image_pdfs.append(open(pdf_path, 'rb'))
 
-                        img.alpha_channel = False
-                        img.format = 'png'
-                        img.save(filename=f"{self.output_folder}/{file_name[:-4]}.png")
+                                img.alpha_channel = False
+                                img.format = 'png'
+                                img.save(filename=f"{self.output_folder}/{file_name[:-4]}.png")
 
-                except WandException:
-                    print(f"Die Datei {file_name} konnte nicht gelesen werden.")
+                        except WandException:
+                            print(f"Die Datei {file_name} konnte nicht gelesen werden.")
+
 
         # Append image PDFs to merger
         for image_pdf in image_pdfs:
@@ -133,24 +112,21 @@ class PDF:
         with open(os.path.join(self.output_folder, "Email_Posteingang.pdf"), "wb") as f:
             self.merger.write(f)
 
-        # Wende OCR auf die Output.pdf an => Gibt noch Fehlermeldungen
-        # self.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Output.pdf")
 
-        # Löschen aller Dateien im Output-Ordner außer output.pdf
+        # Löschen aller Dateien im Output-Ordner außer "Email_Posteingang.pdf"
         for file_name in os.listdir(self.output_folder):
             if file_name != "Email_Posteingang.pdf":
                 file_path = os.path.join(self.output_folder, file_name)
                 os.remove(file_path)
 
-        # move "Email_Posteingang.pdf to scan_eingang_pfad
-        #os.rename(os.path.join(self.output_folder, "Email_Posteingang.pdf"), self.scan_eingang_pfad)
-
-
-        print("Alles erledigt.")
+    def move_pdf_to_scan_folder(self):
+        os.rename(os.path.join(self.output_folder, "Email_Posteingang_OCR.pdf"), self.scan_eingang_pfad)
 
 
 if __name__ == '__main__':
     pdf = PDF()
     pdf.convert_eml_to_pdf()
     pdf.merge_pdf()
-    #pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf")
+    pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
+    pdf.move_pdf_to_scan_folder()
+    print("Alles erledigt.")
