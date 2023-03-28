@@ -60,7 +60,7 @@ class PDF:
                     f"Die E-Mail wurde erfolgreich in {pdf_filename} konvertiert und gespeichert im Pfad {file_path}.")
 
     def create_ocr_pdf(self, input_pdf, output_pdf):
-        ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, force_ocr=True, language='deu')
+        ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, skip_text=True, language='deu')
 
 
     def merge_pdf(self):
@@ -124,6 +124,10 @@ class PDF:
         for file_name in os.listdir(self.output_folder):
             file_path = os.path.join(self.output_folder, file_name)
             os.remove(file_path)
+        for file_name in os.listdir(self.input_folder):
+            file_path = os.path.join(self.input_folder, file_name)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
 
 
 if __name__ == '__main__':
@@ -132,4 +136,4 @@ if __name__ == '__main__':
     pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
     pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
     pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner und löscht alle anderen Dateien im Output-Ordner
-    print("Alles erledigt.")
+    print("Alles erledigt!")
