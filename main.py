@@ -71,8 +71,11 @@ class PDF:
                     f"Die E-Mail wurde erfolgreich in {pdf_filename} konvertiert und gespeichert im Pfad {file_path}.")
 
     def create_ocr_pdf(self, input_pdf, output_pdf):
-        ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, skip_text=True, language='deu')
-
+        try:
+            ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, skip_text=True, language='deu')
+        except ZeroDivisionError:
+            print("Die Datei konnte nicht konvertiert werden.")
+            return
 
     def merge_pdf(self):
         image_pdfs = []
@@ -83,7 +86,7 @@ class PDF:
             if file_name.endswith(".pdf"):
                 self.merger.append(open(file_path, 'rb'))
 
-            elif file_name.endswith(".jpg") or file_name.endswith(".jpeg") or file_name.endswith(".png"):
+            elif file_name.endswith(".jpg") or file_name.endswith(".jpeg") or file_name.endswith(".png") or file_name.endswith(".JPG") or file_name.endswith(".JPEG") or file_name.endswith(".PNG"):
                 if os.path.splitext(file_path)[1].lower() in ('.jpg', '.jpeg', '.png'):
                     # Check file size
                     if os.path.getsize(file_path) > 1000000:  # 1 MB
@@ -125,21 +128,27 @@ class PDF:
 
 
         # Löschen aller Dateien im Output-Ordner außer "Email_Posteingang.pdf"
+        #for file_name in os.listdir(self.output_folder):
+        #   if file_name != "Email_Posteingang.pdf":
+        #        file_path = os.path.join(self.output_folder, file_name)
+        #        os.remove(file_path)
+
+    def move_pdf_to_scan_folder(self):
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+        filename = f"{timestamp}_{os.path.basename('Email_Posteingang.pdf')}"
+        new_filepath = os.path.join(os.path.dirname(self.scan_eingang_pfad), filename)
+        for pdf_file in ["Email_Posteingang_OCR.pdf", "Email_Posteingang.pdf"]:
+            if pdf_file in os.listdir(self.output_folder):
+                pdf_file_path = os.path.join(self.output_folder, pdf_file)
+                os.rename(pdf_file_path, new_filepath)
         for file_name in os.listdir(self.output_folder):
             if file_name != "Email_Posteingang.pdf":
                 file_path = os.path.join(self.output_folder, file_name)
                 os.remove(file_path)
 
-    def move_pdf_to_scan_folder(self):
-        now = datetime.now()
-        timestamp = now.strftime("%Y-%m-%d_%H-%M")
-        filename = f"{timestamp}_{os.path.basename(self.scan_eingang_pfad)}"
-        new_filepath = os.path.join(os.path.dirname(self.scan_eingang_pfad), filename)
-        os.rename(os.path.join(self.output_folder, "Email_Posteingang_OCR.pdf"), new_filepath)
-        for file_name in os.listdir(self.output_folder):
-            file_path = os.path.join(self.output_folder, file_name)
-            os.remove(file_path)
-        for file_name in os.listdir(self.input_folder):
+
+        for file_name in os.listdir(self.input_folder): # Löscht alle Dateien im Input-Ordner
             file_path = os.path.join(self.input_folder, file_name)
             if os.path.isfile(file_path):
                 os.remove(file_path)
@@ -148,10 +157,22 @@ class PDF:
 if __name__ == '__main__':
     pdf = PDF() # Erstellt eine Instanz der Klasse PDF
     if pdf.folder_contains_files(pdf.input_folder):
-        pdf.convert_eml_to_pdf() # Konvertiert alle EML-Dateien im Input-Ordner in PDF-Dateien
-        pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
-        pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
-        pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner und löscht alle anderen Dateien im Output-Ordner
+        try:
+            pdf.convert_eml_to_pdf() # Konvertiert alle EML-Dateien im Input-Ordner in PDF-Dateien
+        except:
+            print("Die EML-Dateien konnten nicht konvertiert werden.")
+        try:
+            pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
+        except:
+            print("Die PDF-Dateien konnten nicht zusammengefügt werden.")
+        try:
+            pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
+        except:
+            print("Die PDF-Datei konnte nicht konvertiert werden.")
+        try:
+            pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner und löscht alle anderen Dateien im Output-Ordner
+        except:
+            print("Die PDF-Datei konnte nicht in den Scan-Ordner verschoben werden.")
         print("Alles erledigt!")
     else:
         print("Der Input-Ordner ist leer.")
