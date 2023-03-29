@@ -6,6 +6,7 @@ import email
 from weasyprint import HTML
 from PIL import Image as PILImage
 import ocrmypdf
+from datetime import datetime
 
 class PDF:
     def __init__(self):
@@ -18,6 +19,11 @@ class PDF:
         if not os.path.exists(self.output_folder):
             os.makedirs(self.output_folder)
 
+    def folder_contains_files(self, folder_path):
+        for filename in os.listdir(folder_path):
+            if os.path.isfile(os.path.join(folder_path, filename)):
+                return True
+        return False
 
     def convert_eml_to_pdf(self):
         for file_name in os.listdir(self.input_folder):
@@ -120,7 +126,11 @@ class PDF:
                 os.remove(file_path)
 
     def move_pdf_to_scan_folder(self):
-        os.rename(os.path.join(self.output_folder, "Email_Posteingang_OCR.pdf"), self.scan_eingang_pfad)
+        now = datetime.now()
+        timestamp = now.strftime("%Y-%m-%d_%H-%M")
+        filename = f"{timestamp}_{os.path.basename(self.scan_eingang_pfad)}"
+        new_filepath = os.path.join(os.path.dirname(self.scan_eingang_pfad), filename)
+        os.rename(os.path.join(self.output_folder, "Email_Posteingang_OCR.pdf"), new_filepath)
         for file_name in os.listdir(self.output_folder):
             file_path = os.path.join(self.output_folder, file_name)
             os.remove(file_path)
@@ -132,8 +142,11 @@ class PDF:
 
 if __name__ == '__main__':
     pdf = PDF() # Erstellt eine Instanz der Klasse PDF
-    pdf.convert_eml_to_pdf() # Konvertiert alle EML-Dateien im Input-Ordner in PDF-Dateien
-    pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
-    pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
-    pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner und löscht alle anderen Dateien im Output-Ordner
-    print("Alles erledigt!")
+    if pdf.folder_contains_files(pdf.input_folder):
+        pdf.convert_eml_to_pdf() # Konvertiert alle EML-Dateien im Input-Ordner in PDF-Dateien
+        pdf.merge_pdf() # Erstellt "Email_Posteingang.pdf" im Output-Ordner
+        pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
+        pdf.move_pdf_to_scan_folder() # Verschiebt "Email_Posteingang_OCR.pdf" in den Scan-Ordner und löscht alle anderen Dateien im Output-Ordner
+        print("Alles erledigt!")
+    else:
+        print("Der Input-Ordner ist leer.")
