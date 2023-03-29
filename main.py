@@ -8,6 +8,11 @@ from PIL import Image as PILImage
 import ocrmypdf
 from datetime import datetime
 
+
+# TODO: HEIC Bilddateien in PDF konvertieren
+# TODO: Systemmessage wenn keine Dateien im Ordner sind
+# TODO: Systemmessage, wenn nicht alle Dateien konvertiert werden konnten
+
 class PDF:
     def __init__(self):
         self.merger = PdfMerger()
