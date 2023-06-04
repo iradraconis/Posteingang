@@ -16,9 +16,9 @@ from datetime import datetime
 class PDF:
     def __init__(self):
         self.merger = PdfMerger()
-        self.input_folder = "/home/max/Downloads/Anhang"
-        self.output_folder = "/home/max/Downloads/Anhang/output_folder"
-        self.scan_eingang_pfad = "/home/max/Scans/Email_Posteingang.pdf"
+        self.input_folder = "/Users/max/Downloads/Anhang"
+        self.output_folder = "/Users/max/Downloads/Anhang/output_folder"
+        self.scan_eingang_pfad = "/Users/max/Scans/Email_Posteingang.pdf"
 
 
         if not os.path.exists(self.output_folder):
@@ -166,7 +166,7 @@ if __name__ == '__main__':
         except:
             print("Die PDF-Dateien konnten nicht zusammengefügt werden.")
         try:
-            pdf.create_ocr_pdf("/home/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/home/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
+            pdf.create_ocr_pdf("/Users/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf","/Users/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
         except:
             print("Die PDF-Datei konnte nicht konvertiert werden.")
         try:
