@@ -1,4 +1,7 @@
+import json
 import os
+import shutil
+
 from PyPDF2 import PdfMerger, PdfFileWriter, PdfFileReader
 import email
 from PIL import Image as PILImage
@@ -6,19 +9,24 @@ from reportlab.pdfgen import canvas
 import ocrmypdf
 from datetime import datetime
 import pdfkit
-
-# brew install Caskroom/cask/wkhtmltopdf
-# brew install tesseract-lang
+from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget
 
 class PDF:
     def __init__(self):
         self.merger = PdfMerger()
-        self.input_folder = "/Users/max/Downloads/Anhang"
-        self.output_folder = "/Users/max/Downloads/Anhang/output_folder"
-        self.scan_eingang_pfad = "/Users/max/Scans/Email_Posteingang.pdf"
+        self.filepath = os.path.join(os.path.dirname(__file__), "folders.json")  # Füge den Pfad zur JSON-Datei hinzu
 
-        if not os.path.exists(self.output_folder):
-            os.makedirs(self.output_folder)
+        if os.path.exists(self.filepath):  # Prüfen, ob die JSON-Datei existiert
+            with open(self.filepath, "r") as json_file:
+                data = json.load(json_file)
+                self.input_folder = data.get("input_folder")
+                self.temp_folder = data.get("temp_folder")
+                self.scan_eingang_pfad = data.get("scan_eingang_pfad")
+        else:
+            self.input_folder = None
+            self.temp_folder = None
+            self.scan_eingang_pfad = None
+
 
     def folder_contains_files(self, folder_path):
         for filename in os.listdir(folder_path):
@@ -91,6 +99,8 @@ class PDF:
             return
 
     def merge_pdf(self):
+        self.temp_folder = self.input_folder + "/output_folder/"
+
         image_pdfs = []
         eml_pdfs = []
 
@@ -109,7 +119,7 @@ class PDF:
                 img = PILImage.open(file_path)
                 img = img.convert('RGB')
 
-                pdf_path = os.path.join(self.output_folder, f"{file_name[:-4]}.pdf")
+                pdf_path = os.path.join(self.temp_folder, f"{file_name[:-4]}.pdf")
 
                 canv = canvas.Canvas(pdf_path, pagesize=img.size)
                 canv.drawImage(file_path, 0, 0, *img.size)
@@ -126,21 +136,22 @@ class PDF:
         for pdf_path in image_pdfs:
             self.merger.append(pdf_path)
 
-        with open(os.path.join(self.output_folder, "Email_Posteingang.pdf"), "wb") as f:
+        with open(os.path.join(self.temp_folder, "Email_Posteingang.pdf"), "wb") as f:
             self.merger.write(f)
 
     def move_pdf_to_scan_folder(self):
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
-        filename = f"{timestamp}_{os.path.basename('Email_Posteingang.pdf')}"
-        new_filepath = os.path.join(os.path.dirname(self.scan_eingang_pfad), filename)
+        filename = f"{timestamp}_Email_Posteingang_OCR.pdf"
+        new_filepath = os.path.join(self.scan_eingang_pfad, filename)
         for pdf_file in ["Email_Posteingang_OCR.pdf", "Email_Posteingang.pdf"]:
-            if pdf_file in os.listdir(self.output_folder):
-                pdf_file_path = os.path.join(self.output_folder, pdf_file)
-                os.rename(pdf_file_path, new_filepath)
-        for file_name in os.listdir(self.output_folder):
+            if pdf_file in os.listdir(self.temp_folder):
+                pdf_file_path = os.path.join(self.temp_folder, pdf_file)
+                shutil.move(pdf_file_path, new_filepath)  # Verwenden von shutil.move anstelle von os.rename
+
+        for file_name in os.listdir(self.temp_folder):
             if file_name != "Email_Posteingang.pdf":
-                file_path = os.path.join(self.output_folder, file_name)
+                file_path = os.path.join(self.temp_folder, file_name)
                 os.remove(file_path)
 
         for file_name in os.listdir(self.input_folder):
@@ -148,29 +159,94 @@ class PDF:
             if os.path.isfile(file_path):
                 os.remove(file_path)
 
-if __name__ == '__main__':
-    pdf = PDF()
-    if pdf.folder_contains_files(pdf.input_folder):
-        try:
-            pdf.convert_eml_to_pdf()
-        except:
-            print("Die EML-Dateien konnten nicht konvertiert werden.")
-        try:
-            pdf.merge_pdf()
-        except Exception as e:
-            print(e)
-            print(" Die PDF-Dateien konnten nicht zusammengefügt werden.")
-        try:
-            pdf.create_ocr_pdf("/Users/max/Downloads/Anhang/output_folder/Email_Posteingang.pdf",
-                               "/Users/max/Downloads/Anhang/output_folder/Email_Posteingang_OCR.pdf")
-        except Exception as e:
-            print(e)
-            print("Die PDF-Datei konnte nicht konvertiert werden.")
-        try:
-            pdf.move_pdf_to_scan_folder()
-        except:
-            print("Die PDF-Datei konnte nicht in den Scan-Ordner verschoben werden.")
-        print("Alles erledigt!")
-    else:
-        print("Der Input-Ordner ist leer.")
 
+class App(QWidget):
+    def __init__(self, pdf_class):
+        super().__init__()
+
+        self.title = 'Email => Posteingang'
+        self.pdf = pdf_class
+        self.initUI()
+
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.resize(250, 230)  # Parameter sind Breite und Höhe in Pixeln
+
+        layout = QVBoxLayout()
+
+        self.label_input = QLabel(self)
+        self.label_input.setText(f"Input Folder: {self.pdf.input_folder}" if self.pdf.input_folder else "Input Folder: None")
+        layout.addWidget(self.label_input)
+
+        self.btn_input = QPushButton('Choose Input Folder', self)
+        self.btn_input.clicked.connect(self.choose_input_folder)
+        layout.addWidget(self.btn_input)
+
+        self.label_output = QLabel(self)
+        self.label_output.setText(f"Output Folder: {self.pdf.scan_eingang_pfad}" if self.pdf.scan_eingang_pfad else "Output Folder: None")
+        layout.addWidget(self.label_output)
+
+        self.btn_output = QPushButton('Choose Output Folder', self)
+        self.btn_output.clicked.connect(self.choose_output_folder)
+        layout.addWidget(self.btn_output)
+
+        self.btn_run = QPushButton('Run Script', self)
+        self.btn_run.clicked.connect(self.run_script)
+        layout.addWidget(self.btn_run)
+
+        self.setLayout(layout)
+
+    def choose_input_folder(self):
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Input Folder")
+        self.pdf.input_folder = folder_path
+        self.label_input.setText(f"Input Folder: {folder_path}")
+        self.save_to_json("input_folder", folder_path)
+
+    def choose_output_folder(self):
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        self.pdf.scan_eingang_pfad = folder_path
+        self.label_output.setText(f"Output Folder: {folder_path}")
+        self.save_to_json("scan_eingang_pfad", folder_path)
+
+    def save_to_json(self, key, value):
+        data = {}
+        if os.path.exists(self.pdf.filepath):
+            with open(self.pdf.filepath, "r") as json_file:
+                data = json.load(json_file)
+        data[key] = value
+        with open(self.pdf.filepath, "w") as json_file:
+            json.dump(data, json_file)
+
+    def run_script(self):
+        if self.pdf.folder_contains_files(self.pdf.input_folder):
+            try:
+                self.pdf.convert_eml_to_pdf()
+            except:
+                print("Die EML-Dateien konnten nicht konvertiert werden.")
+            try:
+                self.pdf.merge_pdf()
+            except Exception as e:
+                print(e)
+                print(" Die PDF-Dateien konnten nicht zusammengefügt werden.")
+            try:
+                self.pdf.create_ocr_pdf(os.path.join(self.pdf.temp_folder, "Email_Posteingang.pdf"),
+                                        os.path.join(self.pdf.temp_folder, "Email_Posteingang_OCR.pdf"))
+            except Exception as e:
+                print(e)
+                print("Die PDF-Datei konnte nicht konvertiert werden.")
+            try:
+                self.pdf.move_pdf_to_scan_folder()
+            except Exception as e:
+                print(e)
+                print("Die PDF-Datei konnte nicht in den Scan-Ordner verschoben werden.")
+            print("Alles erledigt!")
+        else:
+            print("Der Input-Ordner ist leer.")
+
+
+if __name__ == '__main__':
+    app = QApplication([])
+    pdf = PDF()
+    ex = App(pdf)
+    ex.show()
+    app.exec()
