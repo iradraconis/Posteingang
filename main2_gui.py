@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 
-from PyPDF2 import PdfMerger, PdfFileWriter, PdfFileReader
+from PyPDF2 import PdfMerger
 import email
 from PIL import Image as PILImage
 from reportlab.pdfgen import canvas
@@ -10,6 +10,9 @@ import ocrmypdf
 from datetime import datetime
 import pdfkit
 from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget
+
+# wkhtmltopdf muss installiert sein brew install wkhtmltopdf oder dnf install wkhtmltopdf
+
 
 class PDF:
     def __init__(self):
@@ -72,7 +75,7 @@ class PDF:
 
                 content = f"<p>Absender: {sender}<br>Email: {sender_email}</p>" + content
 
-                pdf_filename = os.path.splitext(file_name)[0] + "eml.pdf"
+                pdf_filename = os.path.splitext(file_name)[0] + "-eml.pdf"
                 pdf_path = os.path.join(self.input_folder, pdf_filename)
 
                 try:
@@ -87,7 +90,7 @@ class PDF:
             if max(img.size) > max_size:
                 scaling_factor = max_size / float(max(img.size))
                 new_size = tuple([int(x * scaling_factor) for x in img.size])
-                img = img.resize(new_size, PILImage.ANTIALIAS)
+                img = img.resize(new_size, PILImage.LANCZOS)
                 img.save(image_path)
 
 
@@ -99,7 +102,11 @@ class PDF:
             return
 
     def merge_pdf(self):
-        self.temp_folder = self.input_folder + "/output_folder/"
+        self.temp_folder = self.input_folder + "/temp_folder/"
+
+        # Erstellt den temp_folder, wenn er nicht existiert.
+        if not os.path.exists(self.temp_folder):
+            os.makedirs(self.temp_folder)
 
         image_pdfs = []
         eml_pdfs = []
@@ -108,12 +115,12 @@ class PDF:
             file_path = os.path.join(self.input_folder, file_name)
 
             if file_name.endswith(".pdf"):
-                if file_name.endswith(".eml.pdf"):  # Wir nehmen an, dass EML-PDFs die Endung ".eml.pdf" haben
+                if file_name.endswith("-eml.pdf"):  # Wir nehmen an, dass EML-PDFs die Endung ".eml.pdf" haben
                     eml_pdfs.append(file_path)
                 else:
                     image_pdfs.append(file_path)
 
-            elif file_name.lower().endswith(('.jpg', '.jpeg', '.png')):
+            elif file_name.lower().endswith(('.jpg', '.jpeg', '.png', 'heic')):
                 self.resize_image(file_path, 2160)  # Ändert die Größe des Bildes, wenn es größer als 1080px ist.
 
                 img = PILImage.open(file_path)
@@ -158,6 +165,16 @@ class PDF:
             file_path = os.path.join(self.input_folder, file_name)
             if os.path.isfile(file_path):
                 os.remove(file_path)
+
+        if os.path.exists(self.temp_folder):
+            try:
+                # Entfernen Sie das Verzeichnis und alle darin enthaltenen Dateien und Unterverzeichnisse.
+                shutil.rmtree(self.temp_folder)
+                print(f"Ordner {self.temp_folder} erfolgreich entfernt.")
+            except Exception as e:
+                print(f"Fehler beim Entfernen des Ordners {self.temp_folder: {str(e)}}")
+        else:
+            print(f"Der Ordner {self.temp_folder} existiert nicht.")
 
 
 class App(QWidget):
@@ -221,7 +238,8 @@ class App(QWidget):
         if self.pdf.folder_contains_files(self.pdf.input_folder):
             try:
                 self.pdf.convert_eml_to_pdf()
-            except:
+            except Exception as e:
+                print(e)
                 print("Die EML-Dateien konnten nicht konvertiert werden.")
             try:
                 self.pdf.merge_pdf()

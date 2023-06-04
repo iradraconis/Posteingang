@@ -127,12 +127,6 @@ class PDF:
             self.merger.write(f)
 
 
-        # Löschen aller Dateien im Output-Ordner außer "Email_Posteingang.pdf"
-        #for file_name in os.listdir(self.output_folder):
-        #   if file_name != "Email_Posteingang.pdf":
-        #        file_path = os.path.join(self.output_folder, file_name)
-        #        os.remove(file_path)
-
     def move_pdf_to_scan_folder(self):
         now = datetime.now()
         timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
