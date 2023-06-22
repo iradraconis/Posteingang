@@ -61,7 +61,7 @@ class PDF:
                 html = f"<p>Absender: {sender}<br>Email: {sender_email}</p>" + html
 
                 # Erstelle eine neue PDF-Datei
-                pdf_filename = os.path.splitext(file_name)[0] + ".pdf"
+                pdf_filename = os.path.splitext(file_name)[0] + "_email.pdf"
                 pdf_path = os.path.join(self.input_folder, pdf_filename)
 
                 # Konvertiere HTML zu PDF

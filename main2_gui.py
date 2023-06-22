@@ -37,7 +37,6 @@ class PDF:
                 return True
         return False
 
-
     def convert_eml_to_pdf(self):
         for file_name in os.listdir(self.input_folder):
             file_path = os.path.join(self.input_folder, file_name)
@@ -58,12 +57,12 @@ class PDF:
                 html = ""
                 plain_text = ""
                 for part in msg.walk():
+                    charset = part.get_content_charset()
                     if part.get_content_type() == "text/html":
-                        charset = part.get_content_charset() or 'utf-8'
-                        html += part.get_payload(decode=True).decode(charset)
+                        html += part.get_payload(decode=True).decode(charset if charset else 'utf-8', errors='replace')
                     elif part.get_content_type() == "text/plain":
-                        charset = part.get_content_charset() or 'utf-8'
-                        plain_text += part.get_payload(decode=True).decode(charset)
+                        plain_text += part.get_payload(decode=True).decode(charset if charset else 'utf-8',
+                                                                           errors='replace')
 
                 if html:
                     content = html.replace('\n', '<br>')
@@ -73,7 +72,7 @@ class PDF:
                     print(f"Die EML-Datei {file_name} enthält keinen erkennbaren Inhalt.")
                     return
 
-                content = f"<p>Absender: {sender}<br>Email: {sender_email}</p>" + content
+                content = f"<meta charset='UTF-8'><p>Absender: {sender}<br>Email: {sender_email}</p>" + content
 
                 pdf_filename = os.path.splitext(file_name)[0] + "-eml.pdf"
                 pdf_path = os.path.join(self.input_folder, pdf_filename)
