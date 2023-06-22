@@ -1,4 +1,6 @@
 import os
+
+from pdfkit import pdfkit
 from wand.image import Image
 from wand.exceptions import WandException
 from PyPDF2 import PdfMerger
@@ -37,38 +39,45 @@ class PDF:
             if file_path.endswith(".eml"):
                 print(file_name)
 
-                # Überprüfen, ob die EML-Datei vorhanden ist
                 if not os.path.isfile(file_path):
                     print(f"Die Datei {file_name} konnte nicht gefunden werden im Pfad {file_path}.")
                     return
 
-                # Verarbeite die EML-Datei
                 with open(file_path, 'r', encoding='utf-8') as f:
                     msg = email.message_from_file(f)
 
-                # Extrahiere den Absender der E-Mail
                 sender = msg['From']
                 sender_email = msg['From'].split('<')[1][:-1]
 
-                # Extrahiere den HTML-Inhalt der E-Mail
                 html = ""
+                plain_text = ""
                 for part in msg.walk():
+                    charset = part.get_content_charset()
                     if part.get_content_type() == "text/html":
-                        charset = part.get_content_charset() or 'utf-8'
-                        html += part.get_payload(decode=True).decode(charset)
+                        html += part.get_payload(decode=True).decode(charset if charset else 'utf-8', errors='replace')
+                    elif part.get_content_type() == "text/plain":
+                        plain_text += part.get_payload(decode=True).decode(charset if charset else 'utf-8',
+                                                                           errors='replace')
 
-                # Füge den Absender und dessen Email-Adresse am Anfang des HTML-Inhalts hinzu
-                html = f"<p>Absender: {sender}<br>Email: {sender_email}</p>" + html
+                if html:
+                    content = html.replace('\n', '<br>')
+                elif plain_text:
+                    content = f"<pre>{plain_text}</pre>"
+                else:
+                    print(f"Die EML-Datei {file_name} enthält keinen erkennbaren Inhalt.")
+                    return
 
-                # Erstelle eine neue PDF-Datei
-                pdf_filename = os.path.splitext(file_name)[0] + "_email.pdf"
+                content = f"<meta charset='UTF-8'><p>Absender: {sender}<br>Email: {sender_email}</p>" + content
+
+                pdf_filename = os.path.splitext(file_name)[0] + "-eml.pdf"
                 pdf_path = os.path.join(self.input_folder, pdf_filename)
 
-                # Konvertiere HTML zu PDF
-                HTML(string=html.replace('\n', '<br>')).write_pdf(pdf_path)
-
-                print(
-                    f"Die E-Mail wurde erfolgreich in {pdf_filename} konvertiert und gespeichert im Pfad {file_path}.")
+                try:
+                    pdfkit.from_string(content, pdf_path)
+                    print(
+                        f"Die E-Mail wurde erfolgreich in {pdf_filename} konvertiert und gespeichert im Pfad {file_path}.")
+                except Exception as e:
+                    print(f"Fehler beim Konvertieren der E-Mail in PDF: {str(e)}")
 
     def create_ocr_pdf(self, input_pdf, output_pdf):
         try:

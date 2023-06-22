@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import subprocess
 
 from PyPDF2 import PdfMerger
 import email
@@ -81,8 +82,11 @@ class PDF:
                     pdfkit.from_string(content, pdf_path)
                     print(
                         f"Die E-Mail wurde erfolgreich in {pdf_filename} konvertiert und gespeichert im Pfad {file_path}.")
+                    subprocess.Popen(
+                        ['notify-send', 'E-Mail Konvertierung', 'Die E-Mail wurde erfolgreich konvertiert!'])
                 except Exception as e:
                     print(f"Fehler beim Konvertieren der E-Mail in PDF: {str(e)}")
+                    subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Fehler beim Konvertieren der E-Mail!'])
 
     def resize_image(self, image_path, max_size):
         with PILImage.open(image_path) as img:
@@ -96,8 +100,10 @@ class PDF:
     def create_ocr_pdf(self, input_pdf, output_pdf):
         try:
             ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, skip_text=True, language='deu')
+            subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'OCR erfolgreich!'])
         except ZeroDivisionError:
             print("Die Datei konnte nicht konvertiert werden.")
+            subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Fehler beim OCR!'])
             return
 
     def merge_pdf(self):
@@ -245,20 +251,26 @@ class App(QWidget):
             except Exception as e:
                 print(e)
                 print(" Die PDF-Dateien konnten nicht zusammengefügt werden.")
+                subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Fehler beim Zusammenfügen der PDF Dateien!'])
             try:
                 self.pdf.create_ocr_pdf(os.path.join(self.pdf.temp_folder, "Email_Posteingang.pdf"),
                                         os.path.join(self.pdf.temp_folder, "Email_Posteingang_OCR.pdf"))
             except Exception as e:
                 print(e)
                 print("Die PDF-Datei konnte nicht konvertiert werden.")
+                subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Fehler beim Konvertieren!'])
             try:
                 self.pdf.move_pdf_to_scan_folder()
+                subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Datei in den Zielordner verschoben!'])
+
             except Exception as e:
                 print(e)
                 print("Die PDF-Datei konnte nicht in den Scan-Ordner verschoben werden.")
+                subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Fehler beim Verschieben in den Zielordner!'])
             print("Alles erledigt!")
         else:
             print("Der Input-Ordner ist leer.")
+            subprocess.Popen(['notify-send', 'E-Mail Konvertierung', 'Fehler: Der Input Ordner ist leer!'])
 
 
 if __name__ == '__main__':
