@@ -11,8 +11,10 @@ import ocrmypdf
 from datetime import datetime
 import pdfkit
 from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget
+from qt_material import apply_stylesheet
 
 # wkhtmltopdf muss installiert sein brew install wkhtmltopdf oder dnf install wkhtmltopdf
+# pip install qt-material
 
 
 class PDF:
@@ -192,7 +194,7 @@ class App(QWidget):
 
     def initUI(self):
         self.setWindowTitle(self.title)
-        self.resize(250, 230)  # Parameter sind Breite und Höhe in Pixeln
+        self.resize(230, 280)  # Parameter sind Breite und Höhe in Pixeln
 
         layout = QVBoxLayout()
 
@@ -211,6 +213,9 @@ class App(QWidget):
         self.btn_output = QPushButton('Choose Output Folder', self)
         self.btn_output.clicked.connect(self.choose_output_folder)
         layout.addWidget(self.btn_output)
+
+        # add spacer between buttons and run button
+        layout.addStretch()
 
         self.btn_run = QPushButton('Run Script', self)
         self.btn_run.clicked.connect(self.run_script)
@@ -275,6 +280,10 @@ class App(QWidget):
 
 if __name__ == '__main__':
     app = QApplication([])
+
+    # setup stylesheet
+    apply_stylesheet(app, theme='dark_purple.xml')
+
     pdf = PDF()
     ex = App(pdf)
     ex.show()
