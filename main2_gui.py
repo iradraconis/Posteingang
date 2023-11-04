@@ -1,6 +1,6 @@
 import json
 import os
-import shutil‚
+import shutil
 
 from PyPDF2 import PdfMerger
 import email
