@@ -54,7 +54,11 @@ class PDF:
                     msg = email.message_from_file(f)
 
                 sender = msg['From']
-                sender_email = msg['From'].split('<')[1][:-1]
+                split_sender = msg['From'].split('<')
+                if len(split_sender) > 1:
+                    sender_email = split_sender[1][:-1]
+                else:
+                    sender_email = split_sender[0]
 
                 html = ""
                 plain_text = ""
