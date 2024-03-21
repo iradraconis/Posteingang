@@ -14,6 +14,7 @@ from qt_material import apply_stylesheet
 
 # wkhtmltopdf muss installiert sein brew install wkhtmltopdf oder dnf install wkhtmltopdf
 # pip install qt-material
+# pyinstaller --onefile --name "Posteingang" main2_gui.py
 
 
 class PDF:
