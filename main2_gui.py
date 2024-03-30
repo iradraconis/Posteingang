@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import sys
 
 from PyPDF2 import PdfMerger
 import email
@@ -9,13 +10,22 @@ from reportlab.pdfgen import canvas
 import ocrmypdf
 from datetime import datetime
 import pdfkit
-from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget
+from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QMessageBox
 from qt_material import apply_stylesheet
 
 # wkhtmltopdf muss installiert sein brew install wkhtmltopdf oder dnf install wkhtmltopdf
 # pip install qt-material
 # pyinstaller --onefile --name "Posteingang" main2_gui.py
 
+class EmittingStream(object):
+    def __init__(self):
+        self.messages = []
+
+    def write(self, text):
+        self.messages.append(text)
+
+    def read(self):
+        return ''.join(self.messages)
 
 class PDF:
     def __init__(self):
@@ -244,6 +254,9 @@ class App(QWidget):
             json.dump(data, json_file)
 
     def run_script(self):
+        original_stdout = sys.stdout  # Sichern der originalen stdout
+        sys.stdout = EmittingStream()  # Umleitung der stdout
+
         if self.pdf.folder_contains_files(self.pdf.input_folder):
             try:
                 self.pdf.convert_eml_to_pdf()
@@ -267,9 +280,16 @@ class App(QWidget):
             except Exception as e:
                 print(e)
                 print("Die PDF-Datei konnte nicht in den Scan-Ordner verschoben werden.")
-            print("Alles erledigt!")
+            print("Die PDF-Dateien wurden erfolgreich zusammengefügt.")
+
+            # Nachdem die Operationen abgeschlossen sind:
+            output_messages = sys.stdout.read()  # Sammeln der Ausgaben
+            sys.stdout = original_stdout  # Zurücksetzen der stdout auf das Original
+            QMessageBox.information(self, "Prozess abgeschlossen", output_messages)
+
         else:
             print("Der Input-Ordner ist leer.")
+            sys.stdout = original_stdout
 
 
 if __name__ == '__main__':
