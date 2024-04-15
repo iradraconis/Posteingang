@@ -1,9 +1,10 @@
-import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
-from ttkthemes import ThemedTk
+#/usr/bin/python
+
 import json
 import os
 import shutil
+import sys
+
 from PyPDF2 import PdfMerger
 import email
 from PIL import Image as PILImage
@@ -11,22 +12,39 @@ from reportlab.pdfgen import canvas
 import ocrmypdf
 from datetime import datetime
 import pdfkit
+from PySide6.QtWidgets import QApplication, QVBoxLayout, QPushButton, QLabel, QFileDialog, QWidget, QMessageBox
+from qt_material import apply_stylesheet
 
+# wkhtmltopdf muss installiert sein brew install wkhtmltopdf oder dnf install wkhtmltopdf
+# pip install qt-material
+# pyinstaller --onefile --name "Posteingang" main2_gui_qt.py
+
+class EmittingStream(object):
+    def __init__(self):
+        self.messages = []
+
+    def write(self, text):
+        self.messages.append(text)
+
+    def read(self):
+        return ''.join(self.messages)
 
 class PDF:
     def __init__(self):
         self.merger = PdfMerger()
-        self.filepath = os.path.join(os.path.dirname(__file__), "folders.json")
-        if os.path.exists(self.filepath):
+        self.filepath = os.path.join(os.path.dirname(__file__), "folders.json")  # Füge den Pfad zur JSON-Datei hinzu
+
+        if os.path.exists(self.filepath):  # Prüfen, ob die JSON-Datei existiert
             with open(self.filepath, "r") as json_file:
                 data = json.load(json_file)
-                self.input_folder = data.get("input_folder", None)
-                self.temp_folder = data.get("temp_folder", None)
-                self.scan_eingang_pfad = data.get("scan_eingang_pfad", None)
+                self.input_folder = data.get("input_folder")
+                self.temp_folder = data.get("temp_folder")
+                self.scan_eingang_pfad = data.get("scan_eingang_pfad")
         else:
             self.input_folder = None
             self.temp_folder = None
             self.scan_eingang_pfad = None
+
 
     def folder_contains_files(self, folder_path):
         for filename in os.listdir(folder_path):
@@ -92,6 +110,7 @@ class PDF:
                 new_size = tuple([int(x * scaling_factor) for x in img.size])
                 img = img.resize(new_size, PILImage.LANCZOS)
                 img.save(image_path)
+
 
     def create_ocr_pdf(self, input_pdf, output_pdf):
         try:
@@ -176,41 +195,56 @@ class PDF:
             print(f"Der Ordner {self.temp_folder} existiert nicht.")
 
 
-class App:
-    def __init__(self, master, pdf_class):
-        self.master = master
-        master.title('Email => Posteingang')
+class App(QWidget):
+    def __init__(self, pdf_class):
+        super().__init__()
 
+        self.title = 'Email => Posteingang'
         self.pdf = pdf_class
+        self.initUI()
 
-        self.label_input = ttk.Label(master, text="Input Folder: " + (self.pdf.input_folder if self.pdf.input_folder else "None"))
-        self.label_input.pack(pady=(10, 10), padx=(10, 0))
+    def initUI(self):
+        self.setWindowTitle(self.title)
+        self.resize(230, 280)  # Parameter sind Breite und Höhe in Pixeln
 
-        self.btn_input = ttk.Button(master, text='Choose Input Folder', command=self.choose_input_folder)
-        self.btn_input.pack(pady=(10, 10), padx=(10, 0))
+        layout = QVBoxLayout()
 
-        self.label_output = ttk.Label(master, text="Output Folder: " + (self.pdf.scan_eingang_pfad if self.pdf.scan_eingang_pfad else "None"))
-        self.label_output.pack(pady=(10, 10), padx=(10, 0))
+        self.label_input = QLabel(self)
+        self.label_input.setText(f"Input Folder: {self.pdf.input_folder}" if self.pdf.input_folder else "Input Folder: None")
+        layout.addWidget(self.label_input)
 
-        self.btn_output = ttk.Button(master, text='Choose Output Folder', command=self.choose_output_folder)
-        self.btn_output.pack(pady=(10, 10), padx=(10, 0))
+        self.btn_input = QPushButton('Choose Input Folder', self)
+        self.btn_input.clicked.connect(self.choose_input_folder)
+        layout.addWidget(self.btn_input)
 
-        self.btn_run = ttk.Button(master, text='Run Script', command=self.run_script)
-        self.btn_run.pack(pady=(10, 20), padx=(10, 0))
+        self.label_output = QLabel(self)
+        self.label_output.setText(f"Output Folder: {self.pdf.scan_eingang_pfad}" if self.pdf.scan_eingang_pfad else "Output Folder: None")
+        layout.addWidget(self.label_output)
+
+        self.btn_output = QPushButton('Choose Output Folder', self)
+        self.btn_output.clicked.connect(self.choose_output_folder)
+        layout.addWidget(self.btn_output)
+
+        # add spacer between buttons and run button
+        layout.addStretch()
+
+        self.btn_run = QPushButton('Run Script', self)
+        self.btn_run.clicked.connect(self.run_script)
+        layout.addWidget(self.btn_run)
+
+        self.setLayout(layout)
 
     def choose_input_folder(self):
-        folder_path = filedialog.askdirectory()
-        if folder_path:
-            self.pdf.input_folder = folder_path
-            self.label_input.config(text="Input Folder: " + folder_path)
-            self.save_to_json("input_folder", folder_path)
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Input Folder")
+        self.pdf.input_folder = folder_path
+        self.label_input.setText(f"Input Folder: {folder_path}")
+        self.save_to_json("input_folder", folder_path)
 
     def choose_output_folder(self):
-        folder_path = filedialog.askdirectory()
-        if folder_path:
-            self.pdf.scan_eingang_pfad = folder_path
-            self.label_output.config(text="Output Folder: " + folder_path)
-            self.save_to_json("scan_eingang_pfad", folder_path)
+        folder_path = QFileDialog.getExistingDirectory(self, "Select Output Folder")
+        self.pdf.scan_eingang_pfad = folder_path
+        self.label_output.setText(f"Output Folder: {folder_path}")
+        self.save_to_json("scan_eingang_pfad", folder_path)
 
     def save_to_json(self, key, value):
         data = {}
@@ -222,18 +256,51 @@ class App:
             json.dump(data, json_file)
 
     def run_script(self):
+        original_stdout = sys.stdout  # Sichern der originalen stdout
+        sys.stdout = EmittingStream()  # Umleitung der stdout
+
         if self.pdf.folder_contains_files(self.pdf.input_folder):
-            self.pdf.convert_eml_to_pdf()
-            self.pdf.merge_pdf()
-            self.pdf.create_ocr_pdf(os.path.join(self.pdf.temp_folder, "Email_Posteingang.pdf"),
-                                    os.path.join(self.pdf.temp_folder, "Email_Posteingang_OCR.pdf"))
-            self.pdf.move_pdf_to_scan_folder()
-            messagebox.showinfo("Process Completed", "The PDF files have been successfully processed.")
+            try:
+                self.pdf.convert_eml_to_pdf()
+            except Exception as e:
+                print(e)
+                print("Die EML-Dateien konnten nicht konvertiert werden.")
+            try:
+                self.pdf.merge_pdf()
+            except Exception as e:
+                print(e)
+                print(" Die PDF-Dateien konnten nicht zusammengefügt werden.")
+            try:
+                self.pdf.create_ocr_pdf(os.path.join(self.pdf.temp_folder, "Email_Posteingang.pdf"),
+                                        os.path.join(self.pdf.temp_folder, "Email_Posteingang_OCR.pdf"))
+            except Exception as e:
+                print(e)
+                print("Die PDF-Datei konnte nicht konvertiert werden.")
+            try:
+                self.pdf.move_pdf_to_scan_folder()
+
+            except Exception as e:
+                print(e)
+                print("Die PDF-Datei konnte nicht in den Scan-Ordner verschoben werden.")
+            print("Die PDF-Dateien wurden erfolgreich zusammengefügt.")
+
+            # Nachdem die Operationen abgeschlossen sind:
+            output_messages = sys.stdout.read()  # Sammeln der Ausgaben
+            sys.stdout = original_stdout  # Zurücksetzen der stdout auf das Original
+            QMessageBox.information(self, "Prozess abgeschlossen", output_messages)
+
         else:
-            messagebox.showinfo("Error", "The input folder is empty.")
+            print("Der Input-Ordner ist leer.")
+            sys.stdout = original_stdout
+
 
 if __name__ == '__main__':
-    root = ThemedTk(theme="clam", background=True)
+    app = QApplication([])
+
+    # setup stylesheet
+    apply_stylesheet(app, theme='dark_purple.xml')
+
     pdf = PDF()
-    app = App(root, pdf)
-    root.mainloop()
+    ex = App(pdf)
+    ex.show()
+    app.exec()
