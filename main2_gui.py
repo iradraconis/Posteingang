@@ -181,6 +181,8 @@ class App:
         self.master = master
         master.title('Email => Posteingang')
 
+        self.master.geometry("250x300")
+
         self.pdf = pdf_class
 
         self.label_input = ttk.Label(master, text="Input Folder: " + (self.pdf.input_folder if self.pdf.input_folder else "None"))
