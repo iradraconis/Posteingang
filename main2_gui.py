@@ -233,7 +233,7 @@ class App:
             messagebox.showinfo("Error", "The input folder is empty.")
 
 if __name__ == '__main__':
-    root = ThemedTk(theme="clam", background=True)
+    root = ThemedTk(theme="adapta", background=True)
     pdf = PDF()
     app = App(root, pdf)
     root.mainloop()

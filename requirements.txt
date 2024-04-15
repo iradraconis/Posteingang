@@ -10,7 +10,6 @@ lxml==5.2.1
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
 mdurl==0.1.2
-nativesvttk==14
 ocrmypdf==16.1.2
 packaging==24.0
 pdfkit==1.0.0
