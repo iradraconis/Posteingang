@@ -4,17 +4,29 @@
 SCRIPT_PATH="$(dirname "$0")"
 
 # Ausgabe des aktuellen Pfads für Klarheit
-echo "Das Script befindet sich in: $SCRIPT_PATH"
+# echo "Das Script befindet sich in: $SCRIPT_PATH"
 
 # Wechselt in das Verzeichnis, in dem das Script liegt
 cd "$SCRIPT_PATH"
 
 # Bestätigung des aktuellen Verzeichnisses nach dem Wechsel
-echo "Aktuelles Verzeichnis: $(pwd)"
+# echo "Aktuelles Verzeichnis: $(pwd)"
 
 # Ermitteln des Betriebssystems
 OS="$(uname)"
 echo "Das Skript läuft auf: $OS"
+
+# Überprüfen, ob Python installiert ist
+command -v python3 &>/dev/null
+
+if [ $? -ne 0 ]; then
+    echo "Python3 ist nicht installiert. Öffne Python.org in Ihrem Webbrowser..."
+    # Öffnen von Python.org in Ihrem Standard-Webbrowser
+    xdg-open https://www.python.org
+else
+    echo "Python3 ist bereits installiert."
+fi
+
 
 echo "Post wird abgeholt, konvertiert und in Scan-Eingang verschoben"
 
