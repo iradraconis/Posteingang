@@ -50,7 +50,7 @@ case "$OS" in
       which python
     fi
 
-    python main2_gui.py
+    python main.py
     ;;
   "Darwin") 
     # "Das Skript läuft auf einem MacOS-System."
@@ -70,7 +70,7 @@ case "$OS" in
       which python
     fi
 
-    python3 main2_gui.py
+    python3 main.py
     ;;
   "WindowsNT")
     # "Das Skript läuft auf einem Windows-System."
@@ -89,7 +89,7 @@ case "$OS" in
       which python
     fi
 
-    python main2_gui.py
+    python main.py
     ;;
   *) 
     echo "Unbekanntes Betriebssystem."
