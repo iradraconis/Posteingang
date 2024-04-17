@@ -7,10 +7,29 @@
 
 ## Installation
 
-Terminal öffnen und zu gewünschtem Installationspfad wechseln
-git clone "https://github.com/iradraconis/Posteingang.git"
+- Terminal öffnen und zu gewünschtem Installationspfad wechseln und folgendes eingeben:
 
-Alternativ: Dateien herunterladen und entpacken, dann aber keine automatischen Updates möglich
+     ```git clone "https://github.com/iradraconis/Posteingang.git"```
+
+  Alternativ: Dateien herunterladen und entpacken, dann aber keine automatischen Updates möglich
+- unter MacOS kann mit dem Scripteditor ein Applescript erstellt werden, dass als Anwendung unter Programme gespeichert wird und auch in das Dock gezogen werden kann. 
+
+    - Öffne den "Script Editor" auf deinem Mac (befindet sich im Ordner "Programme" > "Dienstprogramme").
+
+    - Erstelle ein neues Script mit folgendem Inhalt:
+
+        ```tell application "Terminal"
+            activate
+            do script "sh ~/path/to/Posteingang.sh"
+        end tell```
+
+    - Ersetze ~/path/to/Posteingang.sh mit dem tatsächlichen Pfad zu deinem Script.
+
+    - Speichere das Script:
+    
+        Wähle im Menü "Ablage" die Option "Sichern".
+        Im Dialogfeld, das erscheint, wähle "Anwendung" im Dropdown-Menü bei "Dateiformat".
+        Gib dem File einen Namen und speichere es an einem geeigneten Ort, z.B. unter Programme.
 
 # E-Mail zu PDF Konverter
 
