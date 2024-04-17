@@ -221,7 +221,7 @@ class App:
         master.title('Email => Posteingang')
 
         self.master.geometry("300x300")
-        self.master.eval('tk::PlaceWindow . center')
+        self.master.eval('tk::PlaceWindow . center') # center window on screen
 
         self.pdf = pdf_class
 
