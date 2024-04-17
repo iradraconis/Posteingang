@@ -11,6 +11,9 @@ Zum Starten des Programms (und auch zur erstmaligen Installation folgenden Befeh
 
 ./Posteingang.sh
 
+Das Skript überprüft, ob ein Python installiert ist. Falls nein, wird Python.org geöffnet. Es wird auf Updates im Github repository geprüft.
+Für den Fall, dass ein Update bereitsteht, kann ein Update durchgeführt werden.
+
 ## Benutzung
 
 Dies öffnet ein Fenster, in dem Sie zwei Ordner auswählen müssen: einen Eingabeordner und einen Ausgabeordner. 
