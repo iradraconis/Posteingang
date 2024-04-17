@@ -60,8 +60,6 @@ else
 fi
 
 
-echo "Post wird abgeholt, konvertiert und in Scan-Eingang verschoben"
-
 # Entsprechend dem Betriebssystem unterschiedliche Aktionen durchführen
 case "$OS" in
   "Linux") 
@@ -140,7 +138,9 @@ case "$OS" in
       source .myenv/bin/activate
       which python
     fi
-
+    
+    echo "Post wird abgeholt, konvertiert und in Scan-Eingang verschoben"
+    
     python main.py
     ;;
   *) 
