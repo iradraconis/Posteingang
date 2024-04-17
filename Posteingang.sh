@@ -9,6 +9,29 @@ SCRIPT_PATH="$(dirname "$0")"
 # Wechselt in das Verzeichnis, in dem das Script liegt
 cd "$SCRIPT_PATH"
 
+# Prüfen Sie, ob das lokale Repository existiert
+if [ ! -d .git ]; then
+    echo "Das Verzeichnis ist kein Git-Repository."
+    exit 1
+fi
+
+# Holen Sie die neuesten Änderungen vom Remote-Repository, ohne sie zu mergen
+git fetch
+
+# Überprüfen Sie, ob der lokale Branch hinter dem Remote-Branch zurückliegt
+LOCAL=$(git rev-parse @)
+REMOTE=$(git rev-parse @{u})
+
+if [ $LOCAL = $REMOTE ]; then
+    echo "Das lokale Repository ist auf dem neuesten Stand."
+else
+    echo "Es gibt eine neuere Version auf GitHub. Update wird ausgeführt..."
+    # Führen Sie ein Update durch
+    git pull
+fi
+
+
+
 # Bestätigung des aktuellen Verzeichnisses nach dem Wechsel
 # echo "Aktuelles Verzeichnis: $(pwd)"
 
