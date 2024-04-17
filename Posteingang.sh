@@ -33,13 +33,12 @@ else
 fi
 
 
-
 # Bestätigung des aktuellen Verzeichnisses nach dem Wechsel
 # echo "Aktuelles Verzeichnis: $(pwd)"
 
 # Ermitteln des Betriebssystems
 OS="$(uname)"
-echo "Das Skript läuft auf: $OS"
+# echo "Das Skript läuft auf: $OS"
 
 # Überprüfen, ob Python installiert ist
 command -v python3 &>/dev/null
@@ -48,8 +47,6 @@ if [ $? -ne 0 ]; then
     echo "Python3 ist nicht installiert. Öffne Python.org in Ihrem Webbrowser..."
     # Öffnen von Python.org in Ihrem Standard-Webbrowser
     xdg-open https://www.python.org
-else
-    echo "Python3 ist bereits installiert."
 fi
 
 
@@ -63,7 +60,7 @@ case "$OS" in
     if [ ! -f "$DESKTOP_FILE_PATH" ]; then
       echo "Die Datei Posteingang.desktop existiert nicht. Sie wird erstellt..."
 
-      # Erstellen Sie die Datei mit dem angegebenen Inhalt
+      # Erstellen Sie die Datei mit dem angegebenen Inhalt 
       echo "[Desktop Entry]
     Type=Application
     Terminal=true
@@ -73,8 +70,6 @@ case "$OS" in
     Comment=Mails zu PDF zu Scans
     Categories=Utility;" > "$DESKTOP_FILE_PATH"
     chmod +x "$DESKTOP_FILE_PATH"
-    else
-      echo "Die Datei Posteingang.desktop existiert bereits."
     fi
 
 
@@ -84,13 +79,13 @@ case "$OS" in
       python -m venv .myenv
       source .myenv/bin/activate
       pip install -r requirements.txt
-      which python
+      # which python
 
     else
-      # If it exists, print a message
-      echo "Directory 'myenv' already exists. Activating virtual environment."
+      # If it exists, the virtual environment is activated
+      # echo "Directory 'myenv' already exists. Activating virtual environment."
       source .myenv/bin/activate
-      which python
+      # which python
     fi
 
     python main.py
@@ -104,13 +99,13 @@ case "$OS" in
       python3 -m venv .myenv
       source .myenv/bin/activate
       pip install -r requirements.txt
-      which python3
+      # which python3
 
     else
       # If it exists, print a message
-      echo "Directory 'myenv' already exists. Activating virtual environment."
+      # echo "Directory 'myenv' already exists. Activating virtual environment."
       source .myenv/bin/activate
-      which python
+      # which python
     fi
 
     python3 main.py
@@ -123,13 +118,13 @@ case "$OS" in
       python3 -m venv .myenv
       source .myenv/bin/activate
       pip install -r requirements.txt
-      which python
+      # which python
 
     else
       # If it exists, print a message
-      echo "Directory 'myenv' already exists. Activating virtual environment."
+      # echo "Directory 'myenv' already exists. Activating virtual environment."
       source .myenv/bin/activate
-      which python
+      # which python
     fi
     
     echo "Post wird abgeholt, konvertiert und in Scan-Eingang verschoben"
