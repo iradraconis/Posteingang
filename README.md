@@ -18,10 +18,12 @@
 
     - Erstelle ein neues Script mit folgendem Inhalt:
 
-        ```tell application "Terminal"
+        ```
+        tell application "Terminal"
             activate
             do script "sh ~/path/to/Posteingang.sh"
-        end tell```
+        end tell
+        ```
 
     - Ersetze ~/path/to/Posteingang.sh mit dem tatsächlichen Pfad zu deinem Script.
 
@@ -43,7 +45,7 @@ Zum Starten des Programms (und auch zur erstmaligen Installation) Terminal öffn
 Das Skript überprüft, ob ein Python installiert ist. Falls nein, wird Python.org geöffnet. Es wird auf Updates im Github repository geprüft.
 Für den Fall, dass ein Update bereitsteht, wird das Update automatisch durchgeführt.
 
-Unter MacOS kann das Skript bequem über einen Kurzbefehl gestartet werden. Dazu Kurzbefehl erstellen. Element "Shell-Skript ausführen" hinzufügen. dort eingeben "cd /Users/NameDesNutzers/SpeicherortDesScripts" in der nächsten Zeile "./Posteingang.sh"
+Unter Linux kann das Programm über den Desktop Starter gestartet werden. Unter MacOS kann das Programm zum Dock hinzugefügt werden, s.o.
 
 ## Benutzung
 
