@@ -15,10 +15,10 @@ if [ ! -d .git ]; then
     exit 1
 fi
 
-# Holen Sie die neuesten Änderungen vom Remote-Repository, ohne sie zu mergen
+# Holt die neuesten Änderungen vom Remote-Repository, ohne sie zu mergen
 git fetch
 
-# Überprüfen Sie, ob der lokale Branch hinter dem Remote-Branch zurückliegt
+# Überprüft, ob der lokale Branch hinter dem Remote-Branch zurückliegt
 LOCAL=$(git rev-parse @)
 REMOTE=$(git rev-parse @{u})
 
@@ -26,7 +26,7 @@ if [ $LOCAL = $REMOTE ]; then
     echo "Das lokale Repository ist auf dem neuesten Stand."
 else
     echo "Es gibt eine neuere Version auf GitHub. Update wird ausgeführt..."
-    # Führen Sie ein Update durch
+    # Führt ein Update durch
     git pull
 fi
 
@@ -57,6 +57,26 @@ echo "Post wird abgeholt, konvertiert und in Scan-Eingang verschoben"
 case "$OS" in
   "Linux") 
     # "Das Skript läuft auf einem Linux-System."
+
+    DESKTOP_FILE_PATH="$HOME/.local/share/applications/Posteingang.desktop"
+
+    if [ ! -f "$DESKTOP_FILE_PATH" ]; then
+      echo "Die Datei Posteingang.desktop existiert nicht. Sie wird erstellt..."
+
+      # Erstellen Sie die Datei mit dem angegebenen Inhalt
+      echo "[Desktop Entry]
+    Type=Application
+    Terminal=true
+    Name=Posteingang
+    Icon=document-send-symbolic
+    Exec=/home/max/Nextcloud/Coding/Skripte/Posteingang/Posteingang.sh
+    Comment=Mails zu PDF zu Scans
+    Categories=Utility;" > "$DESKTOP_FILE_PATH"
+    chmod +x "$DESKTOP_FILE_PATH"
+    else
+      echo "Die Datei Posteingang.desktop existiert bereits."
+    fi
+
 
     if [ ! -d ".myenv" ]; then
       # If it does not exist, create a virtual environment using Python3
