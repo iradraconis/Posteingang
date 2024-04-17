@@ -29,14 +29,7 @@ else
     # Zeigt die Commit-Nachrichten an
     git log $LOCAL..$REMOTE --oneline
 
-    # Fragt den Benutzer, ob er ein Update durchführen möchte
-    read -p "Möchten Sie ein Update durchführen? (j/n) " -n 1 -r
-    echo    # (optional) move to a new line
-    if [[ $REPLY =~ ^[Jj]$ ]]
-    then
-        # Führt ein Update durch
-        git pull
-    fi
+    git pull
 fi
 
 
