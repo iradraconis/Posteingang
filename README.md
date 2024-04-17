@@ -1,6 +1,6 @@
 # E-Mail zu PDF Konverter
 
-Dieses Python-Programm ist ein Werkzeug, das E-Mail-Nachrichten und Bilder in PDF-Dateien konvertiert, diese dann zusammenführt und die resultierende PDF-Datei in einen Zielordner verschiebt. Zudem wird auch eine optische Zeichenerkennung (OCR) auf die generierte PDF durchgeführt.
+Dieses Python-Programm ist ein Werkzeug, das E-Mail-Nachrichten und Bilder in einem ausgewählten Ordner zu PDF-Dateien konvertiert, diese dann zusammenführt und die resultierende PDF-Datei in einen Zielordner verschiebt. Zudem wird auch eine optische Zeichenerkennung (OCR) auf die generierte PDF durchgeführt.
 Installation
 
 Das Programm erfordert die Installation einiger externer Bibliotheken und richtet eine virtuelle Python Umgebung ein. 
