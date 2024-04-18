@@ -104,9 +104,13 @@ class PDF:
             self.logger.error(f"Failed to convert EML files to PDF in folder {self.input_folder}: {e}")
             raise
 
-    def resize_image(self, image_path, max_size):
+    def resize__and_rotate_image(self, image_path, max_size):
         try:
             with PILImage.open(image_path) as img:
+                # Dreht das Bild, wenn es im Querformat ist
+                if img.width > img.height:
+                    img = img.rotate(90, expand=True)
+                
                 if max(img.size) > max_size:
                     scaling_factor = max_size / float(max(img.size))
                     new_size = tuple([int(x * scaling_factor) for x in img.size])
@@ -144,7 +148,7 @@ class PDF:
                         image_pdfs.append(file_path)
 
                 elif file_name.lower().endswith(('.jpg', '.jpeg', '.png', 'heic')):
-                    self.resize_image(file_path, 2160)  # Ändert die Größe des Bildes, wenn es größer als 1080px ist.
+                    self.resize__and_rotate_image(file_path, 2160)  # Ändert die Größe des Bildes, wenn es größer als 1080px ist.
 
                     img = PILImage.open(file_path)
                     img = img.convert('RGB')
