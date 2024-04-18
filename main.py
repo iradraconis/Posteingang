@@ -6,7 +6,7 @@ import os
 import shutil
 from PyPDF2 import PdfMerger
 import email
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ExifTags
 from reportlab.pdfgen import canvas
 import ocrmypdf
 from datetime import datetime
@@ -104,20 +104,22 @@ class PDF:
             self.logger.error(f"Failed to convert EML files to PDF in folder {self.input_folder}: {e}")
             raise
 
-    def resize__and_rotate_image(self, image_path, max_size):
+    def resize_and_rotate_image(self, image_path, max_size):
         try:
             with PILImage.open(image_path) as img:
                 # Dreht das Bild, wenn es im Querformat ist
                 if img.width > img.height:
-                    img = img.rotate(90, expand=True)
+                    img = img.rotate(270, expand=True)
                 
                 if max(img.size) > max_size:
                     scaling_factor = max_size / float(max(img.size))
                     new_size = tuple([int(x * scaling_factor) for x in img.size])
                     img = img.resize(new_size, PILImage.LANCZOS)
-                    img.save(image_path)
+
+                img.save(image_path)
+
         except Exception as e:
-            self.logger.error(f"Failed to resize image {image_path}: {e}")
+            self.logger.error(f"Failed to resize or rotate image {image_path}: {e}")
             raise
 
     def create_ocr_pdf(self, input_pdf, output_pdf):
@@ -148,7 +150,7 @@ class PDF:
                         image_pdfs.append(file_path)
 
                 elif file_name.lower().endswith(('.jpg', '.jpeg', '.png', 'heic')):
-                    self.resize__and_rotate_image(file_path, 2160)  # Ändert die Größe des Bildes, wenn es größer als 1080px ist.
+                    self.resize_and_rotate_image(file_path, 2160)  # Ändert die Größe des Bildes, wenn es größer als 1080px ist.
 
                     img = PILImage.open(file_path)
                     img = img.convert('RGB')
