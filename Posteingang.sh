@@ -66,7 +66,7 @@ case "$OS" in
     Terminal=true
     Name=Posteingang
     Icon=document-send-symbolic
-    Exec=/home/max/Nextcloud/Coding/Skripte/Posteingang/Posteingang.sh
+    Exec="$SCRIPT_PATH"/Posteingang.sh
     Comment=Mails zu PDF zu Scans
     Categories=Utility;" > "$DESKTOP_FILE_PATH"
     chmod +x "$DESKTOP_FILE_PATH"
