@@ -8,7 +8,7 @@ from PyPDF2 import PdfMerger
 import email
 from PIL import Image as PILImage, ExifTags
 from reportlab.pdfgen import canvas
-import ocrmypdf
+# import ocrmypdf
 from datetime import datetime
 import pdfkit
 import logging
@@ -122,12 +122,12 @@ class PDF:
             self.logger.error(f"Failed to resize or rotate image {image_path}: {e}")
             raise
 
-    def create_ocr_pdf(self, input_pdf, output_pdf):
-        try:
-            ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, skip_text=True, language='deu')
-        except ZeroDivisionError:
-            print("Die Datei konnte nicht konvertiert werden.")
-            return
+    # def create_ocr_pdf(self, input_pdf, output_pdf):
+    #     try:
+    #         ocrmypdf.ocr(input_pdf, output_pdf, deskew=True, skip_text=True, language='deu')
+    #     except ZeroDivisionError:
+    #         print("Die Datei konnte nicht konvertiert werden.")
+    #         return
 
     def merge_pdf(self):
         try:
@@ -273,8 +273,7 @@ class App:
         if self.pdf.folder_contains_files(self.pdf.input_folder):
             self.pdf.convert_eml_to_pdf()
             self.pdf.merge_pdf()
-            self.pdf.create_ocr_pdf(os.path.join(self.pdf.temp_folder, "Email_Posteingang.pdf"),
-                                    os.path.join(self.pdf.temp_folder, "Email_Posteingang_OCR.pdf"))
+            # self.pdf.create_ocr_pdf(os.path.join(self.pdf.temp_folder, "Email_Posteingang.pdf"), os.path.join(self.pdf.temp_folder, "Email_Posteingang_OCR.pdf"))
             self.pdf.move_pdf_to_scan_folder()
             messagebox.showinfo("Process Completed", "The PDF files have been successfully processed.")
         else:
