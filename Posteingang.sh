@@ -78,6 +78,7 @@ case "$OS" in
       echo "Directory 'myenv' does not exist. Creating a Python virtual environment."
       python -m venv .myenv
       source .myenv/bin/activate
+      pip install --upgrade pip
       pip install -r requirements.txt
       # which python
 
@@ -98,6 +99,7 @@ case "$OS" in
       echo "Directory 'myenv' does not exist. Creating a Python virtual environment."
       python3 -m venv .myenv
       source .myenv/bin/activate
+      pip install --upgrade pip
       pip install -r requirements.txt
       # which python3
 
